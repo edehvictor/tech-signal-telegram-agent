@@ -1,0 +1,38 @@
+export const sampleItems = [
+  {
+    title: "GitHub repo for a new AI coding workflow is trending",
+    category: "trending_tool",
+    source: "GitHub Trending",
+    summary: "A developer tool focused on AI-assisted coding is getting attention from engineers.",
+    whyItMatters: "Trending repos are useful signals for tools worth testing before they become mainstream.",
+    hoursAgo: 2,
+    url: "https://github.com/trending",
+  },
+  {
+    title: "Remote junior AI engineer role opened at an early-stage startup",
+    category: "job",
+    source: "Curated X/Twitter account",
+    summary: "A startup is hiring for a remote role focused on building AI product features.",
+    whyItMatters: "This matches the kind of job opportunity the agent should surface quickly.",
+    hoursAgo: 5,
+    url: "https://x.com/search?q=remote%20AI%20engineer%20hiring",
+  },
+  {
+    title: "AI hackathon applications are open this week",
+    category: "hackathon",
+    source: "Hackathon community",
+    summary: "A community hackathon is accepting builders for an AI-focused weekend event.",
+    whyItMatters: "Hackathons are time-sensitive, so the bot should highlight them before deadlines pass.",
+    hoursAgo: 10,
+    url: "https://devpost.com/hackathons",
+  },
+  {
+    title: "Influential engineer shared a thread on agent architecture",
+    category: "top_signal",
+    source: "Curated X/Twitter account",
+    summary: "The thread explains how small agents can combine tools, memory, and scheduled tasks.",
+    whyItMatters: "This is directly relevant to how we are designing this bot.",
+    hoursAgo: 20,
+    url: "https://x.com/search?q=AI%20agent%20architecture",
+  },
+] as const;

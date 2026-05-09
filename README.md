@@ -1,6 +1,6 @@
 # Tech Signal Telegram Agent
 
-A small Node.js Telegram bot that will grow into a daily tech briefing agent.
+A small TypeScript + Node.js Telegram bot that will grow into a daily tech briefing agent.
 
 ## Step 1
 
@@ -11,7 +11,7 @@ This first version only responds to:
 - `/last 6h`
 - `/last 24h`
 
-The briefing data is mocked for now. Next, we will replace the mock data with real collectors.
+The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
 
 ## Setup
 
@@ -22,6 +22,20 @@ The briefing data is mocked for now. Next, we will replace the mock data with re
 
 ```bash
 npm start
+```
+
+## Development
+
+Run the tests:
+
+```bash
+npm test
+```
+
+Build the TypeScript project:
+
+```bash
+npm run build
 ```
 
 ## BotFather

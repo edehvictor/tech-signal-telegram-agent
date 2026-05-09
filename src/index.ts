@@ -1,6 +1,22 @@
 import fs from "node:fs";
 import { parseCommand } from "./commands.js";
 
+type TelegramResponse<T> = {
+  ok: boolean;
+  result?: T;
+  description?: string;
+};
+
+type TelegramUpdate = {
+  update_id: number;
+  message?: {
+    text?: string;
+    chat: {
+      id: number;
+    };
+  };
+};
+
 loadEnvFile();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -12,9 +28,9 @@ if (!token) {
 
 let offset = 0;
 
-const apiUrl = (method) => `https://api.telegram.org/bot${token}/${method}`;
+const apiUrl = (method: string) => `https://api.telegram.org/bot${token}/${method}`;
 
-function loadEnvFile() {
+function loadEnvFile(): void {
   if (!fs.existsSync(".env")) return;
 
   const content = fs.readFileSync(".env", "utf8");
@@ -35,23 +51,23 @@ function loadEnvFile() {
   }
 }
 
-async function telegram(method, payload = {}) {
+async function telegram<T>(method: string, payload: Record<string, unknown> = {}): Promise<T> {
   const response = await fetch(apiUrl(method), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as TelegramResponse<T>;
 
-  if (!data.ok) {
+  if (!data.ok || data.result === undefined) {
     throw new Error(`Telegram API error: ${JSON.stringify(data)}`);
   }
 
   return data.result;
 }
 
-async function handleUpdate(update) {
+async function handleUpdate(update: TelegramUpdate): Promise<void> {
   if (!update.message || !update.message.text) return;
 
   const chatId = update.message.chat.id;
@@ -64,9 +80,9 @@ async function handleUpdate(update) {
   });
 }
 
-async function poll() {
+async function poll(): Promise<void> {
   try {
-    const updates = await telegram("getUpdates", {
+    const updates = await telegram<TelegramUpdate[]>("getUpdates", {
       offset,
       timeout: 30,
       allowed_updates: ["message"],
@@ -77,7 +93,11 @@ async function poll() {
       await handleUpdate(update);
     }
   } catch (error) {
-    console.error(error.message);
+    if (error instanceof Error) {
+      console.error(error.message);
+    } else {
+      console.error(error);
+    }
   } finally {
     setTimeout(poll, 1000);
   }
