@@ -1,0 +1,87 @@
+import fs from "node:fs";
+import { parseCommand } from "./commands.js";
+
+loadEnvFile();
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
+
+if (!token) {
+  console.error("Missing TELEGRAM_BOT_TOKEN. Create a .env file from .env.example.");
+  process.exit(1);
+}
+
+let offset = 0;
+
+const apiUrl = (method) => `https://api.telegram.org/bot${token}/${method}`;
+
+function loadEnvFile() {
+  if (!fs.existsSync(".env")) return;
+
+  const content = fs.readFileSync(".env", "utf8");
+
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex === -1) continue;
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim();
+
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+async function telegram(method, payload = {}) {
+  const response = await fetch(apiUrl(method), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!data.ok) {
+    throw new Error(`Telegram API error: ${JSON.stringify(data)}`);
+  }
+
+  return data.result;
+}
+
+async function handleUpdate(update) {
+  if (!update.message || !update.message.text) return;
+
+  const chatId = update.message.chat.id;
+  const replyText = parseCommand(update.message.text);
+
+  await telegram("sendMessage", {
+    chat_id: chatId,
+    text: replyText,
+    disable_web_page_preview: true,
+  });
+}
+
+async function poll() {
+  try {
+    const updates = await telegram("getUpdates", {
+      offset,
+      timeout: 30,
+      allowed_updates: ["message"],
+    });
+
+    for (const update of updates) {
+      offset = update.update_id + 1;
+      await handleUpdate(update);
+    }
+  } catch (error) {
+    console.error(error.message);
+  } finally {
+    setTimeout(poll, 1000);
+  }
+}
+
+console.log("Tech signal Telegram bot is running...");
+poll();
