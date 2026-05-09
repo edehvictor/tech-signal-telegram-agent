@@ -7,6 +7,7 @@ test("/start explains the available commands", async () => {
 
   assert.match(reply, /tech signal bot/i);
   assert.match(reply, /\/today/);
+  assert.match(reply, /\/ai/);
   assert.match(reply, /\/news/);
   assert.match(reply, /\/jobs/);
 });
@@ -78,6 +79,35 @@ test("/news returns live story format using injected data", async () => {
   assert.match(reply, /Top Hacker News tech stories/);
   assert.match(reply, /Show HN: Useful developer tool/);
   assert.match(reply, /Link: https:\/\/example.com\/dev-tool/);
+});
+
+test("/ai returns curated AI news using injected data", async () => {
+  const reply = await parseCommand("/ai", {
+    fetchAiNews: async () => [
+      {
+        title: "New open model improves coding benchmarks",
+        source: "Example AI Source",
+        url: "https://example.com/ai-news",
+        publishedAt: new Date("2026-05-09T10:00:00Z"),
+      },
+    ],
+  });
+
+  assert.match(reply, /Latest AI news/);
+  assert.match(reply, /New open model improves coding benchmarks/);
+  assert.match(reply, /Source: Example AI Source/);
+  assert.match(reply, /Published: 2026-05-09/);
+  assert.match(reply, /Link: https:\/\/example.com\/ai-news/);
+});
+
+test("/ai handles collector failures gracefully", async () => {
+  const reply = await parseCommand("/ai", {
+    fetchAiNews: async () => {
+      throw new Error("network failed");
+    },
+  });
+
+  assert.match(reply, /could not fetch live AI news/i);
 });
 
 test("/news handles collector failures gracefully", async () => {

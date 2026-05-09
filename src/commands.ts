@@ -1,3 +1,4 @@
+import { fetchAiNews, type AiNewsItem } from "./collectors/aiNews.js";
 import { fetchHackerNewsTopStories, type HackerNewsStory } from "./collectors/hackerNews.js";
 import { sampleItems } from "./sampleItems.js";
 
@@ -17,6 +18,7 @@ type CategoryCommand = {
 };
 
 type CommandDependencies = {
+  fetchAiNews?: (limit?: number) => Promise<ReadonlyArray<AiNewsItem>>;
   fetchHackerNewsTopStories?: (limit?: number) => Promise<ReadonlyArray<HackerNewsStory>>;
 };
 
@@ -126,6 +128,28 @@ export function buildHackerNewsBriefing(stories: ReadonlyArray<HackerNewsStory>)
   return lines.join("\n").trim();
 }
 
+export function buildAiNewsBriefing(items: ReadonlyArray<AiNewsItem>): string {
+  if (items.length === 0) {
+    return "No AI news found right now.";
+  }
+
+  const lines = ["Latest AI news", ""];
+
+  items.forEach((item, index) => {
+    lines.push(`${index + 1}. ${item.title}`);
+    lines.push(`Source: ${item.source}`);
+
+    if (item.publishedAt) {
+      lines.push(`Published: ${item.publishedAt.toISOString().slice(0, 10)}`);
+    }
+
+    lines.push(`Link: ${item.url}`);
+    lines.push("");
+  });
+
+  return lines.join("\n").trim();
+}
+
 export async function parseCommand(text: string, dependencies: CommandDependencies = {}): Promise<string> {
   const normalized = text.trim().toLowerCase();
 
@@ -137,6 +161,7 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
       "/today",
       "/last 6h",
       "/last 24h",
+      "/ai",
       "/news",
       "/jobs",
       "/hackathons",
@@ -157,6 +182,16 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildBriefing(Number(lastMatch[1]));
   }
 
+  if (normalized === "/ai") {
+    try {
+      const fetchNews = dependencies.fetchAiNews ?? fetchAiNews;
+      const items = await fetchNews(8);
+      return buildAiNewsBriefing(items);
+    } catch (error) {
+      return "I could not fetch live AI news right now. Please try again in a bit.";
+    }
+  }
+
   if (normalized === "/news") {
     try {
       const fetchStories = dependencies.fetchHackerNewsTopStories ?? fetchHackerNewsTopStories;
@@ -172,5 +207,5 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildCategoryBriefing(categoryCommand);
   }
 
-  return "I understand /start, /today, /last 6h, /news, /jobs, /hackathons, and /trending for now.";
+  return "I understand /start, /today, /last 6h, /ai, /news, /jobs, /hackathons, and /trending for now.";
 }

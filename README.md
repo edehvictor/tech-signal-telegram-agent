@@ -10,12 +10,15 @@ This first version only responds to:
 - `/today`
 - `/last 6h`
 - `/last 24h`
+- `/ai`
 - `/news`
 - `/jobs`
 - `/hackathons`
 - `/trending`
 
 The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
+
+`/ai` fetches live AI news from curated sources, including AI research, product, infrastructure, and industry feeds. The source list is intentionally editable so the bot is not tied to one company.
 
 `/news` fetches live top stories from Hacker News and includes a link for each story.
 
