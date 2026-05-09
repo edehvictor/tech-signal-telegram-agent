@@ -7,6 +7,7 @@ test("/start explains the available commands", async () => {
 
   assert.match(reply, /tech signal bot/i);
   assert.match(reply, /\/today/);
+  assert.match(reply, /\/x/);
   assert.match(reply, /\/ai/);
   assert.match(reply, /\/news/);
   assert.match(reply, /\/jobs/);
@@ -114,6 +115,52 @@ test("/ai returns curated AI news using injected data", async () => {
   assert.match(reply, /Published: 2026-05-09/);
   assert.match(reply, /Link: https:\/\/example.com\/ai-news/);
   assert.ok(reply.indexOf("New open model improves coding benchmarks") < reply.indexOf("AI ad campaign"));
+});
+
+test("/x returns ranked X/Twitter signals using injected data", async () => {
+  const reply = await parseCommand("/x", {
+    fetchTwitterPosts: async () => [
+      {
+        id: "1",
+        authorName: "Marketing Person",
+        authorHandle: "marketing",
+        text: "Celebrity AI ad campaign launches today",
+        url: "https://x.com/marketing/status/1",
+        createdAt: new Date("2026-05-09T08:00:00Z"),
+        likeCount: 900,
+        repostCount: 200,
+        replyCount: 50,
+      },
+      {
+        id: "2",
+        authorName: "Engineer",
+        authorHandle: "engineer",
+        text: "Open source AI agent SDK release with TypeScript examples",
+        url: "https://x.com/engineer/status/2",
+        createdAt: new Date("2026-05-09T09:00:00Z"),
+        likeCount: 120,
+        repostCount: 40,
+        replyCount: 20,
+      },
+    ],
+  });
+
+  assert.match(reply, /Latest X\/Twitter tech signals/);
+  assert.match(reply, /X\/Twitter by @engineer/);
+  assert.match(reply, /Relevance:/);
+  assert.match(reply, /Likes: 120/);
+  assert.match(reply, /Link: https:\/\/x.com\/engineer\/status\/2/);
+  assert.ok(reply.indexOf("Open source AI agent SDK") < reply.indexOf("Celebrity AI ad campaign"));
+});
+
+test("/x handles collector failures gracefully", async () => {
+  const reply = await parseCommand("/x", {
+    fetchTwitterPosts: async () => {
+      throw new Error("network failed");
+    },
+  });
+
+  assert.match(reply, /could not fetch X\/Twitter posts/i);
 });
 
 test("/ai handles collector failures gracefully", async () => {

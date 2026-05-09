@@ -1,5 +1,6 @@
 import { type AiNewsItem } from "./collectors/aiNews.js";
 import { type HackerNewsStory } from "./collectors/hackerNews.js";
+import { type TwitterPost } from "./collectors/twitter.js";
 import { scoreSignal, type SignalScore } from "./scoring.js";
 
 export type SignalCategory = "ai" | "news" | "job" | "hackathon" | "trending_tool" | "top_signal";
@@ -106,6 +107,22 @@ export function hackerNewsToSignals(stories: ReadonlyArray<HackerNewsStory>): Si
     engagementScore: story.score,
     metadata: {
       "HN score": story.score,
+    },
+  }));
+}
+
+export function twitterPostsToSignals(posts: ReadonlyArray<TwitterPost>): Signal[] {
+  return posts.map((post) => ({
+    title: post.text,
+    category: "top_signal",
+    source: `X/Twitter by @${post.authorHandle}`,
+    url: post.url,
+    publishedAt: post.createdAt,
+    engagementScore: post.likeCount + post.repostCount * 2 + post.replyCount,
+    metadata: {
+      Likes: post.likeCount,
+      Reposts: post.repostCount,
+      Replies: post.replyCount,
     },
   }));
 }

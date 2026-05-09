@@ -1,7 +1,15 @@
 import { fetchAiNews, type AiNewsItem } from "./collectors/aiNews.js";
 import { fetchHackerNewsTopStories, type HackerNewsStory } from "./collectors/hackerNews.js";
+import { fetchTwitterPosts, type TwitterPost } from "./collectors/twitter.js";
 import { sampleItems } from "./sampleItems.js";
-import { aiNewsToSignals, formatSignals, hackerNewsToSignals, rankSignals, type Signal } from "./signals.js";
+import {
+  aiNewsToSignals,
+  formatSignals,
+  hackerNewsToSignals,
+  rankSignals,
+  twitterPostsToSignals,
+  type Signal,
+} from "./signals.js";
 
 type BriefingItem = {
   title: string;
@@ -21,6 +29,7 @@ type CategoryCommand = {
 type CommandDependencies = {
   fetchAiNews?: (limit?: number) => Promise<ReadonlyArray<AiNewsItem>>;
   fetchHackerNewsTopStories?: (limit?: number) => Promise<ReadonlyArray<HackerNewsStory>>;
+  fetchTwitterPosts?: (limit?: number) => Promise<ReadonlyArray<TwitterPost>>;
 };
 
 const categoryLabels: Record<BriefingItem["category"], string> = {
@@ -145,6 +154,14 @@ export function buildAiNewsBriefing(items: ReadonlyArray<AiNewsItem>): string {
   return formatSignals("Latest AI news", aiNewsToSignals(items), 8);
 }
 
+export function buildTwitterBriefing(posts: ReadonlyArray<TwitterPost>): string {
+  if (posts.length === 0) {
+    return "No X/Twitter posts found right now.";
+  }
+
+  return formatSignals("Latest X/Twitter tech signals", twitterPostsToSignals(posts), 8);
+}
+
 export async function parseCommand(text: string, dependencies: CommandDependencies = {}): Promise<string> {
   const normalized = text.trim().toLowerCase();
 
@@ -156,6 +173,7 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
       "/today",
       "/last 6h",
       "/last 24h",
+      "/x",
       "/ai",
       "/news",
       "/jobs",
@@ -175,6 +193,16 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
   const lastMatch = normalized.match(/^\/last\s+(\d+)h$/);
   if (lastMatch) {
     return buildBriefing(Number(lastMatch[1]));
+  }
+
+  if (normalized === "/x") {
+    try {
+      const fetchPosts = dependencies.fetchTwitterPosts ?? fetchTwitterPosts;
+      const posts = await fetchPosts(20);
+      return buildTwitterBriefing(posts);
+    } catch (error) {
+      return "I could not fetch X/Twitter posts right now. Please try again in a bit.";
+    }
   }
 
   if (normalized === "/ai") {
@@ -202,5 +230,5 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildCategoryBriefing(categoryCommand);
   }
 
-  return "I understand /start, /today, /last 6h, /ai, /news, /jobs, /hackathons, and /trending for now.";
+  return "I understand /start, /today, /last 6h, /x, /ai, /news, /jobs, /hackathons, and /trending for now.";
 }

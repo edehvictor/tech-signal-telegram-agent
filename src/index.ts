@@ -21,6 +21,7 @@ const botCommands = [
   { command: "start", description: "Show available commands" },
   { command: "today", description: "Get the last 24 hours of tech updates" },
   { command: "last", description: "Get updates for a custom window, like /last 6h" },
+  { command: "x", description: "Show ranked X/Twitter tech signals" },
   { command: "ai", description: "Show live AI news from curated sources" },
   { command: "news", description: "Show live Hacker News stories" },
   { command: "jobs", description: "Show job openings" },

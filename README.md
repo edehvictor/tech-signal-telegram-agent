@@ -10,6 +10,7 @@ This first version only responds to:
 - `/today`
 - `/last 6h`
 - `/last 24h`
+- `/x`
 - `/ai`
 - `/news`
 - `/jobs`
@@ -17,6 +18,8 @@ This first version only responds to:
 - `/trending`
 
 The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
+
+`/x` currently uses mock X/Twitter posts to prove the source shape, ranking, and Telegram output. Later we will replace the mock collector with real X/Twitter access.
 
 `/ai` fetches live AI news from curated sources, including AI research, product, infrastructure, and industry feeds. The source list is intentionally editable so the bot is not tied to one company.
 
