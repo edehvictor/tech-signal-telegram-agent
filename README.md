@@ -10,6 +10,9 @@ This first version only responds to:
 - `/today`
 - `/last 6h`
 - `/last 24h`
+- `/jobs`
+- `/hackathons`
+- `/trending`
 
 The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
 

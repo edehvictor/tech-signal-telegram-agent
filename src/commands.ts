@@ -10,11 +10,31 @@ type BriefingItem = {
   url?: string;
 };
 
+type CategoryCommand = {
+  category: BriefingItem["category"];
+  label: string;
+};
+
 const categoryLabels: Record<BriefingItem["category"], string> = {
   top_signal: "Top signals",
   job: "Jobs",
   hackathon: "Hackathons",
   trending_tool: "Trending tools",
+};
+
+const categoryCommands: Record<string, CategoryCommand> = {
+  "/jobs": {
+    category: "job",
+    label: "Jobs",
+  },
+  "/hackathons": {
+    category: "hackathon",
+    label: "Hackathons",
+  },
+  "/trending": {
+    category: "trending_tool",
+    label: "Trending tools",
+  },
 };
 
 export function buildBriefing(hours: number, items: ReadonlyArray<BriefingItem> = sampleItems): string {
@@ -51,6 +71,38 @@ export function buildBriefing(hours: number, items: ReadonlyArray<BriefingItem> 
   return lines.join("\n").trim();
 }
 
+export function buildCategoryBriefing(
+  command: CategoryCommand,
+  hours = 24,
+  items: ReadonlyArray<BriefingItem> = sampleItems,
+): string {
+  const matchingItems = items
+    .filter((item) => item.category === command.category)
+    .filter((item) => item.hoursAgo <= hours)
+    .sort((a, b) => a.hoursAgo - b.hoursAgo);
+
+  if (matchingItems.length === 0) {
+    return `No ${command.label.toLowerCase()} found for the last ${hours} hours.`;
+  }
+
+  const lines = [`${command.label} for the last ${hours} hours`, ""];
+
+  matchingItems.forEach((item, index) => {
+    lines.push(`${index + 1}. ${item.title}`);
+    lines.push(`Source: ${item.source}`);
+    lines.push(`Summary: ${item.summary}`);
+    lines.push(`Why it matters: ${item.whyItMatters}`);
+
+    if (item.url) {
+      lines.push(`Link: ${item.url}`);
+    }
+
+    lines.push("");
+  });
+
+  return lines.join("\n").trim();
+}
+
 export function parseCommand(text: string): string {
   const normalized = text.trim().toLowerCase();
 
@@ -62,6 +114,9 @@ export function parseCommand(text: string): string {
       "/today",
       "/last 6h",
       "/last 24h",
+      "/jobs",
+      "/hackathons",
+      "/trending",
     ].join("\n");
   }
 
@@ -74,5 +129,10 @@ export function parseCommand(text: string): string {
     return buildBriefing(Number(lastMatch[1]));
   }
 
-  return "I understand /start, /today, and /last 6h for now.";
+  const categoryCommand = categoryCommands[normalized];
+  if (categoryCommand) {
+    return buildCategoryBriefing(categoryCommand);
+  }
+
+  return "I understand /start, /today, /last 6h, /jobs, /hackathons, and /trending for now.";
 }
