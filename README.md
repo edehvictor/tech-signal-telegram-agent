@@ -10,11 +10,16 @@ This first version only responds to:
 - `/today`
 - `/last 6h`
 - `/last 24h`
+- `/news`
 - `/jobs`
 - `/hackathons`
 - `/trending`
 
 The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
+
+`/news` fetches live top stories from Hacker News and includes a link for each story.
+
+When the bot starts, it registers these commands with Telegram so they appear when you type `/` in the bot chat.
 
 ## Setup
 

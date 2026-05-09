@@ -1,3 +1,4 @@
+import { fetchHackerNewsTopStories, type HackerNewsStory } from "./collectors/hackerNews.js";
 import { sampleItems } from "./sampleItems.js";
 
 type BriefingItem = {
@@ -13,6 +14,10 @@ type BriefingItem = {
 type CategoryCommand = {
   category: BriefingItem["category"];
   label: string;
+};
+
+type CommandDependencies = {
+  fetchHackerNewsTopStories?: (limit?: number) => Promise<ReadonlyArray<HackerNewsStory>>;
 };
 
 const categoryLabels: Record<BriefingItem["category"], string> = {
@@ -103,7 +108,25 @@ export function buildCategoryBriefing(
   return lines.join("\n").trim();
 }
 
-export function parseCommand(text: string): string {
+export function buildHackerNewsBriefing(stories: ReadonlyArray<HackerNewsStory>): string {
+  if (stories.length === 0) {
+    return "No Hacker News stories found right now.";
+  }
+
+  const lines = ["Top Hacker News tech stories", ""];
+
+  stories.forEach((story, index) => {
+    lines.push(`${index + 1}. ${story.title}`);
+    lines.push(`Source: Hacker News by ${story.author}`);
+    lines.push(`Score: ${story.score}`);
+    lines.push(`Link: ${story.url}`);
+    lines.push("");
+  });
+
+  return lines.join("\n").trim();
+}
+
+export async function parseCommand(text: string, dependencies: CommandDependencies = {}): Promise<string> {
   const normalized = text.trim().toLowerCase();
 
   if (normalized === "/start") {
@@ -114,6 +137,7 @@ export function parseCommand(text: string): string {
       "/today",
       "/last 6h",
       "/last 24h",
+      "/news",
       "/jobs",
       "/hackathons",
       "/trending",
@@ -124,9 +148,23 @@ export function parseCommand(text: string): string {
     return buildBriefing(24);
   }
 
+  if (normalized === "/last") {
+    return "Use /last with a time window, for example /last 6h or /last 24h.";
+  }
+
   const lastMatch = normalized.match(/^\/last\s+(\d+)h$/);
   if (lastMatch) {
     return buildBriefing(Number(lastMatch[1]));
+  }
+
+  if (normalized === "/news") {
+    try {
+      const fetchStories = dependencies.fetchHackerNewsTopStories ?? fetchHackerNewsTopStories;
+      const stories = await fetchStories(5);
+      return buildHackerNewsBriefing(stories);
+    } catch (error) {
+      return "I could not fetch live Hacker News stories right now. Please try again in a bit.";
+    }
   }
 
   const categoryCommand = categoryCommands[normalized];
@@ -134,5 +172,5 @@ export function parseCommand(text: string): string {
     return buildCategoryBriefing(categoryCommand);
   }
 
-  return "I understand /start, /today, /last 6h, /jobs, /hackathons, and /trending for now.";
+  return "I understand /start, /today, /last 6h, /news, /jobs, /hackathons, and /trending for now.";
 }

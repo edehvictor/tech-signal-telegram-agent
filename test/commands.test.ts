@@ -2,37 +2,45 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildBriefing, parseCommand } from "../src/commands.js";
 
-test("/start explains the available commands", () => {
-  const reply = parseCommand("/start");
+test("/start explains the available commands", async () => {
+  const reply = await parseCommand("/start");
 
   assert.match(reply, /tech signal bot/i);
   assert.match(reply, /\/today/);
+  assert.match(reply, /\/news/);
   assert.match(reply, /\/jobs/);
 });
 
-test("/today returns a 24 hour briefing with links", () => {
-  const reply = parseCommand("/today");
+test("/today returns a 24 hour briefing with links", async () => {
+  const reply = await parseCommand("/today");
 
   assert.match(reply, /last 24 hours/i);
   assert.match(reply, /Link: https:\/\//);
 });
 
-test("/last 6h returns only recent briefing items", () => {
-  const reply = parseCommand("/last 6h");
+test("/last 6h returns only recent briefing items", async () => {
+  const reply = await parseCommand("/last 6h");
 
   assert.match(reply, /last 6 hours/i);
   assert.match(reply, /Remote junior AI engineer/);
   assert.doesNotMatch(reply, /AI hackathon applications/);
 });
 
-test("unknown commands get a helpful fallback", () => {
-  const reply = parseCommand("/unknown");
+test("/last explains the expected time window format", async () => {
+  const reply = await parseCommand("/last");
+
+  assert.match(reply, /\/last 6h/);
+  assert.match(reply, /\/last 24h/);
+});
+
+test("unknown commands get a helpful fallback", async () => {
+  const reply = await parseCommand("/unknown");
 
   assert.match(reply, /understand \/start/i);
 });
 
-test("/jobs returns job items with links", () => {
-  const reply = parseCommand("/jobs");
+test("/jobs returns job items with links", async () => {
+  const reply = await parseCommand("/jobs");
 
   assert.match(reply, /Jobs for the last 24 hours/i);
   assert.match(reply, /Remote junior AI engineer/);
@@ -40,18 +48,46 @@ test("/jobs returns job items with links", () => {
   assert.doesNotMatch(reply, /AI hackathon applications/);
 });
 
-test("/hackathons returns hackathon items", () => {
-  const reply = parseCommand("/hackathons");
+test("/hackathons returns hackathon items", async () => {
+  const reply = await parseCommand("/hackathons");
 
   assert.match(reply, /Hackathons for the last 24 hours/i);
   assert.match(reply, /AI hackathon applications/);
 });
 
-test("/trending returns trending tool items", () => {
-  const reply = parseCommand("/trending");
+test("/trending returns trending tool items", async () => {
+  const reply = await parseCommand("/trending");
 
   assert.match(reply, /Trending tools for the last 24 hours/i);
   assert.match(reply, /GitHub repo/);
+});
+
+test("/news returns live story format using injected data", async () => {
+  const reply = await parseCommand("/news", {
+    fetchHackerNewsTopStories: async () => [
+      {
+        id: 1,
+        title: "Show HN: Useful developer tool",
+        url: "https://example.com/dev-tool",
+        score: 120,
+        author: "builder",
+      },
+    ],
+  });
+
+  assert.match(reply, /Top Hacker News tech stories/);
+  assert.match(reply, /Show HN: Useful developer tool/);
+  assert.match(reply, /Link: https:\/\/example.com\/dev-tool/);
+});
+
+test("/news handles collector failures gracefully", async () => {
+  const reply = await parseCommand("/news", {
+    fetchHackerNewsTopStories: async () => {
+      throw new Error("network failed");
+    },
+  });
+
+  assert.match(reply, /could not fetch live Hacker News/i);
 });
 
 test("empty briefing windows explain that nothing matched", () => {

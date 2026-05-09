@@ -17,6 +17,16 @@ type TelegramUpdate = {
   };
 };
 
+const botCommands = [
+  { command: "start", description: "Show available commands" },
+  { command: "today", description: "Get the last 24 hours of tech updates" },
+  { command: "last", description: "Get updates for a custom window, like /last 6h" },
+  { command: "news", description: "Show live Hacker News stories" },
+  { command: "jobs", description: "Show job openings" },
+  { command: "hackathons", description: "Show hackathon opportunities" },
+  { command: "trending", description: "Show trending tools" },
+] as const;
+
 loadEnvFile();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -71,12 +81,18 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   if (!update.message || !update.message.text) return;
 
   const chatId = update.message.chat.id;
-  const replyText = parseCommand(update.message.text);
+  const replyText = await parseCommand(update.message.text);
 
   await telegram("sendMessage", {
     chat_id: chatId,
     text: replyText,
     disable_web_page_preview: true,
+  });
+}
+
+async function configureBotCommands(): Promise<void> {
+  await telegram("setMyCommands", {
+    commands: botCommands,
   });
 }
 
@@ -104,4 +120,5 @@ async function poll(): Promise<void> {
 }
 
 console.log("Tech signal Telegram bot is running...");
+await configureBotCommands();
 poll();
