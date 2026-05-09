@@ -68,6 +68,13 @@ test("/news returns live story format using injected data", async () => {
     fetchHackerNewsTopStories: async () => [
       {
         id: 1,
+        title: "Celebrity founder interview",
+        url: "https://example.com/interview",
+        score: 200,
+        author: "media",
+      },
+      {
+        id: 2,
         title: "Show HN: Useful developer tool",
         url: "https://example.com/dev-tool",
         score: 120,
@@ -78,12 +85,19 @@ test("/news returns live story format using injected data", async () => {
 
   assert.match(reply, /Top Hacker News tech stories/);
   assert.match(reply, /Show HN: Useful developer tool/);
+  assert.match(reply, /Relevance:/);
   assert.match(reply, /Link: https:\/\/example.com\/dev-tool/);
+  assert.ok(reply.indexOf("Show HN: Useful developer tool") < reply.indexOf("Celebrity founder interview"));
 });
 
 test("/ai returns curated AI news using injected data", async () => {
   const reply = await parseCommand("/ai", {
     fetchAiNews: async () => [
+      {
+        title: "AI ad campaign launches for small businesses",
+        source: "Example Marketing Source",
+        url: "https://example.com/ai-ad",
+      },
       {
         title: "New open model improves coding benchmarks",
         source: "Example AI Source",
@@ -96,8 +110,10 @@ test("/ai returns curated AI news using injected data", async () => {
   assert.match(reply, /Latest AI news/);
   assert.match(reply, /New open model improves coding benchmarks/);
   assert.match(reply, /Source: Example AI Source/);
+  assert.match(reply, /Relevance:/);
   assert.match(reply, /Published: 2026-05-09/);
   assert.match(reply, /Link: https:\/\/example.com\/ai-news/);
+  assert.ok(reply.indexOf("New open model improves coding benchmarks") < reply.indexOf("AI ad campaign"));
 });
 
 test("/ai handles collector failures gracefully", async () => {

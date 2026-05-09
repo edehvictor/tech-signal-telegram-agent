@@ -22,6 +22,8 @@ The briefing data comes from local sample items for now. Each item can include a
 
 `/news` fetches live top stories from Hacker News and includes a link for each story.
 
+Live items are ranked by a shared scoring system before they are shown. The same scoring layer is designed to work for RSS feeds, Hacker News, and future X/Twitter posts.
+
 When the bot starts, it registers these commands with Telegram so they appear when you type `/` in the bot chat.
 
 ## Setup

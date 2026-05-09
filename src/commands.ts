@@ -1,6 +1,7 @@
 import { fetchAiNews, type AiNewsItem } from "./collectors/aiNews.js";
 import { fetchHackerNewsTopStories, type HackerNewsStory } from "./collectors/hackerNews.js";
 import { sampleItems } from "./sampleItems.js";
+import { scoreSignal } from "./scoring.js";
 
 type BriefingItem = {
   title: string;
@@ -47,7 +48,11 @@ const categoryCommands: Record<string, CategoryCommand> = {
 export function buildBriefing(hours: number, items: ReadonlyArray<BriefingItem> = sampleItems): string {
   const matchingItems = items
     .filter((item) => item.hoursAgo <= hours)
-    .sort((a, b) => a.hoursAgo - b.hoursAgo);
+    .sort((a, b) => {
+      const aScore = scoreSignal({ title: a.title, text: `${a.summary} ${a.whyItMatters}`, source: a.source, url: a.url }).score;
+      const bScore = scoreSignal({ title: b.title, text: `${b.summary} ${b.whyItMatters}`, source: b.source, url: b.url }).score;
+      return bScore - aScore || a.hoursAgo - b.hoursAgo;
+    });
 
   if (matchingItems.length === 0) {
     return `No matching tech updates found for the last ${hours} hours.`;
@@ -64,6 +69,7 @@ export function buildBriefing(hours: number, items: ReadonlyArray<BriefingItem> 
     categoryItems.forEach((item, index) => {
       lines.push(`${index + 1}. ${item.title}`);
       lines.push(`Source: ${item.source}`);
+      lines.push(`Relevance: ${scoreSignal({ title: item.title, text: `${item.summary} ${item.whyItMatters}`, source: item.source, url: item.url }).score}`);
       lines.push(`Summary: ${item.summary}`);
       lines.push(`Why it matters: ${item.whyItMatters}`);
 
@@ -86,7 +92,11 @@ export function buildCategoryBriefing(
   const matchingItems = items
     .filter((item) => item.category === command.category)
     .filter((item) => item.hoursAgo <= hours)
-    .sort((a, b) => a.hoursAgo - b.hoursAgo);
+    .sort((a, b) => {
+      const aScore = scoreSignal({ title: a.title, text: `${a.summary} ${a.whyItMatters}`, source: a.source, url: a.url }).score;
+      const bScore = scoreSignal({ title: b.title, text: `${b.summary} ${b.whyItMatters}`, source: b.source, url: b.url }).score;
+      return bScore - aScore || a.hoursAgo - b.hoursAgo;
+    });
 
   if (matchingItems.length === 0) {
     return `No ${command.label.toLowerCase()} found for the last ${hours} hours.`;
@@ -97,6 +107,7 @@ export function buildCategoryBriefing(
   matchingItems.forEach((item, index) => {
     lines.push(`${index + 1}. ${item.title}`);
     lines.push(`Source: ${item.source}`);
+    lines.push(`Relevance: ${scoreSignal({ title: item.title, text: `${item.summary} ${item.whyItMatters}`, source: item.source, url: item.url }).score}`);
     lines.push(`Summary: ${item.summary}`);
     lines.push(`Why it matters: ${item.whyItMatters}`);
 
@@ -116,11 +127,27 @@ export function buildHackerNewsBriefing(stories: ReadonlyArray<HackerNewsStory>)
   }
 
   const lines = ["Top Hacker News tech stories", ""];
+  const rankedStories = [...stories].sort((a, b) => {
+    const aScore = scoreSignal({ title: a.title, source: "Hacker News", url: a.url, engagementScore: a.score }).score;
+    const bScore = scoreSignal({ title: b.title, source: "Hacker News", url: b.url, engagementScore: b.score }).score;
+    return bScore - aScore || b.score - a.score;
+  });
 
-  stories.forEach((story, index) => {
+  rankedStories.forEach((story, index) => {
+    const signalScore = scoreSignal({
+      title: story.title,
+      source: "Hacker News",
+      url: story.url,
+      engagementScore: story.score,
+    });
+
     lines.push(`${index + 1}. ${story.title}`);
     lines.push(`Source: Hacker News by ${story.author}`);
-    lines.push(`Score: ${story.score}`);
+    lines.push(`Relevance: ${signalScore.score}`);
+    lines.push(`HN score: ${story.score}`);
+    if (signalScore.reasons.length > 0) {
+      lines.push(`Why ranked: ${signalScore.reasons.join(", ")}`);
+    }
     lines.push(`Link: ${story.url}`);
     lines.push("");
   });
@@ -134,10 +161,28 @@ export function buildAiNewsBriefing(items: ReadonlyArray<AiNewsItem>): string {
   }
 
   const lines = ["Latest AI news", ""];
+  const rankedItems = [...items].sort((a, b) => {
+    const aScore = scoreSignal({ title: a.title, source: a.source, url: a.url, publishedAt: a.publishedAt }).score;
+    const bScore = scoreSignal({ title: b.title, source: b.source, url: b.url, publishedAt: b.publishedAt }).score;
+    const aTime = a.publishedAt?.getTime() ?? 0;
+    const bTime = b.publishedAt?.getTime() ?? 0;
+    return bScore - aScore || bTime - aTime;
+  });
 
-  items.forEach((item, index) => {
+  rankedItems.forEach((item, index) => {
+    const signalScore = scoreSignal({
+      title: item.title,
+      source: item.source,
+      url: item.url,
+      publishedAt: item.publishedAt,
+    });
+
     lines.push(`${index + 1}. ${item.title}`);
     lines.push(`Source: ${item.source}`);
+    lines.push(`Relevance: ${signalScore.score}`);
+    if (signalScore.reasons.length > 0) {
+      lines.push(`Why ranked: ${signalScore.reasons.join(", ")}`);
+    }
 
     if (item.publishedAt) {
       lines.push(`Published: ${item.publishedAt.toISOString().slice(0, 10)}`);
@@ -185,8 +230,8 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
   if (normalized === "/ai") {
     try {
       const fetchNews = dependencies.fetchAiNews ?? fetchAiNews;
-      const items = await fetchNews(8);
-      return buildAiNewsBriefing(items);
+      const items = await fetchNews(20);
+      return buildAiNewsBriefing(items).split("\n\n").slice(0, 9).join("\n\n");
     } catch (error) {
       return "I could not fetch live AI news right now. Please try again in a bit.";
     }
@@ -195,8 +240,8 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
   if (normalized === "/news") {
     try {
       const fetchStories = dependencies.fetchHackerNewsTopStories ?? fetchHackerNewsTopStories;
-      const stories = await fetchStories(5);
-      return buildHackerNewsBriefing(stories);
+      const stories = await fetchStories(20);
+      return buildHackerNewsBriefing(stories).split("\n\n").slice(0, 6).join("\n\n");
     } catch (error) {
       return "I could not fetch live Hacker News stories right now. Please try again in a bit.";
     }
