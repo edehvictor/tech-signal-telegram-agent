@@ -12,10 +12,9 @@ This first version only responds to:
 - `/last 24h`
 - `/x`
 - `/ai`
-- `/news`
+- `/hn`
 - `/jobs`
 - `/hackathons`
-- `/trending`
 
 The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
 
@@ -23,7 +22,7 @@ The briefing data comes from local sample items for now. Each item can include a
 
 `/ai` fetches live AI news from curated sources, including AI research, product, infrastructure, and industry feeds. The source list is intentionally editable so the bot is not tied to one company.
 
-`/news` fetches live top stories from Hacker News and includes a link for each story.
+`/hn` fetches live top stories from Hacker News and includes a link for each story.
 
 Live items are ranked by a shared scoring system before they are shown. The same scoring layer is designed to work for RSS feeds, Hacker News, and future X/Twitter posts.
 

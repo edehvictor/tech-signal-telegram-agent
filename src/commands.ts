@@ -175,10 +175,9 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
       "/last 24h",
       "/x",
       "/ai",
-      "/news",
+      "/hn",
       "/jobs",
       "/hackathons",
-      "/trending",
     ].join("\n");
   }
 
@@ -215,7 +214,7 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     }
   }
 
-  if (normalized === "/news") {
+  if (normalized === "/hn" || normalized === "/news") {
     try {
       const fetchStories = dependencies.fetchHackerNewsTopStories ?? fetchHackerNewsTopStories;
       const stories = await fetchStories(20);
@@ -230,5 +229,5 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildCategoryBriefing(categoryCommand);
   }
 
-  return "I understand /start, /today, /last 6h, /x, /ai, /news, /jobs, /hackathons, and /trending for now.";
+  return "I understand /start, /today, /last 6h, /x, /ai, /hn, /jobs, and /hackathons for now.";
 }

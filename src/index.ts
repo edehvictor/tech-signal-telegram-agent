@@ -23,10 +23,9 @@ const botCommands = [
   { command: "last", description: "Get updates for a custom window, like /last 6h" },
   { command: "x", description: "Show ranked X/Twitter tech signals" },
   { command: "ai", description: "Show live AI news from curated sources" },
-  { command: "news", description: "Show live Hacker News stories" },
+  { command: "hn", description: "Show live Hacker News stories" },
   { command: "jobs", description: "Show job openings" },
   { command: "hackathons", description: "Show hackathon opportunities" },
-  { command: "trending", description: "Show trending tools" },
 ] as const;
 
 loadEnvFile();

@@ -9,8 +9,11 @@ test("/start explains the available commands", async () => {
   assert.match(reply, /\/today/);
   assert.match(reply, /\/x/);
   assert.match(reply, /\/ai/);
-  assert.match(reply, /\/news/);
+  assert.match(reply, /\/hn/);
   assert.match(reply, /\/jobs/);
+  assert.match(reply, /\/hackathons/);
+  assert.doesNotMatch(reply, /\/news/);
+  assert.doesNotMatch(reply, /\/trending/);
 });
 
 test("/today returns a 24 hour briefing with links", async () => {
@@ -64,8 +67,8 @@ test("/trending returns trending tool items", async () => {
   assert.match(reply, /GitHub repo/);
 });
 
-test("/news returns live story format using injected data", async () => {
-  const reply = await parseCommand("/news", {
+test("/hn returns live Hacker News format using injected data", async () => {
+  const reply = await parseCommand("/hn", {
     fetchHackerNewsTopStories: async () => [
       {
         id: 1,
@@ -173,8 +176,8 @@ test("/ai handles collector failures gracefully", async () => {
   assert.match(reply, /could not fetch live AI news/i);
 });
 
-test("/news handles collector failures gracefully", async () => {
-  const reply = await parseCommand("/news", {
+test("/hn handles collector failures gracefully", async () => {
+  const reply = await parseCommand("/hn", {
     fetchHackerNewsTopStories: async () => {
       throw new Error("network failed");
     },
