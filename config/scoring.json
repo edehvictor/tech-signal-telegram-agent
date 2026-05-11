@@ -1,0 +1,101 @@
+{
+  "positiveRules": [
+    {
+      "keyword": "fellowship",
+      "weight": 4,
+      "reason": "career opportunity signal"
+    },
+    {
+      "keyword": "internship",
+      "weight": 4,
+      "reason": "early-career opportunity signal"
+    },
+    {
+      "keyword": "remote",
+      "weight": 3,
+      "reason": "remote opportunity signal"
+    },
+    {
+      "keyword": "grant",
+      "weight": 3,
+      "reason": "funding opportunity signal"
+    },
+    {
+      "keyword": "deadline",
+      "weight": 2,
+      "reason": "time-sensitive opportunity"
+    },
+    {
+      "keyword": "apply",
+      "weight": 2,
+      "reason": "application opportunity"
+    },
+    {
+      "keyword": "typescript",
+      "weight": 3,
+      "reason": "TypeScript relevance"
+    },
+    {
+      "keyword": "javascript",
+      "weight": 2,
+      "reason": "JavaScript relevance"
+    },
+    {
+      "keyword": "developer preview",
+      "weight": 3,
+      "reason": "developer preview signal"
+    },
+    {
+      "keyword": "eval",
+      "weight": 3,
+      "reason": "AI evaluation signal"
+    },
+    {
+      "keyword": "evals",
+      "weight": 3,
+      "reason": "AI evaluation signal"
+    },
+    {
+      "keyword": "tool calling",
+      "weight": 4,
+      "reason": "agent tool-use signal"
+    },
+    {
+      "keyword": "memory",
+      "weight": 3,
+      "reason": "agent memory signal"
+    },
+    {
+      "keyword": "workflow",
+      "weight": 2,
+      "reason": "automation workflow signal"
+    }
+  ],
+  "negativeRules": [
+    {
+      "keyword": "giveaway",
+      "weight": -3,
+      "reason": "low-signal promotion"
+    },
+    {
+      "keyword": "viral",
+      "weight": -2,
+      "reason": "viral content signal"
+    },
+    {
+      "keyword": "drama",
+      "weight": -3,
+      "reason": "low-signal drama"
+    },
+    {
+      "keyword": "hot take",
+      "weight": -2,
+      "reason": "opinion-heavy signal"
+    },
+    {
+      "keyword": "meme",
+      "weight": -2,
+      "reason": "low technical signal"
+    }
+  ]
+}

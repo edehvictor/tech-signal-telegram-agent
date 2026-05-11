@@ -1,15 +1,11 @@
 import { XMLParser } from "fast-xml-parser";
+import { loadSourcesConfig, type RssSource } from "../config.js";
 
 export type AiNewsItem = {
   title: string;
   source: string;
   url: string;
   publishedAt?: Date;
-};
-
-type RssSource = {
-  name: string;
-  url: string;
 };
 
 type ParsedRssItem = {
@@ -19,33 +15,6 @@ type ParsedRssItem = {
   published?: unknown;
   updated?: unknown;
 };
-
-const aiSources: RssSource[] = [
-  {
-    name: "OpenAI News",
-    url: "https://openai.com/news/rss.xml",
-  },
-  {
-    name: "Google AI Blog",
-    url: "https://blog.google/technology/ai/rss/",
-  },
-  {
-    name: "Microsoft AI Blog",
-    url: "https://blogs.microsoft.com/ai/feed/",
-  },
-  {
-    name: "NVIDIA Deep Learning Blog",
-    url: "https://blogs.nvidia.com/blog/category/deep-learning/feed/",
-  },
-  {
-    name: "MIT Technology Review AI",
-    url: "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
-  },
-  {
-    name: "Artificial Intelligence News",
-    url: "https://www.artificialintelligence-news.com/feed/",
-  },
-];
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -125,6 +94,7 @@ async function fetchSource(source: RssSource): Promise<AiNewsItem[]> {
 }
 
 export async function fetchAiNews(limit = 8): Promise<AiNewsItem[]> {
+  const aiSources = loadSourcesConfig().rssSources.filter((source) => source.enabled && source.category === "ai");
   const sourceResults = await Promise.allSettled(aiSources.map((source) => fetchSource(source)));
   const items = sourceResults.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
   const seen = new Set<string>();

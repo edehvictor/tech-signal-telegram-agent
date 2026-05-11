@@ -13,6 +13,7 @@ This first version only responds to:
 - `/x`
 - `/ai`
 - `/hn`
+- `/sources`
 - `/jobs`
 - `/hackathons`
 
@@ -24,9 +25,22 @@ The briefing data comes from local sample items for now. Each item can include a
 
 `/hn` fetches live top stories from Hacker News and includes a link for each story.
 
+`/sources` shows the topics, X/Twitter accounts, keywords, and RSS feeds from `config/sources.json`.
+
 Live items are ranked by a shared scoring system before they are shown. The same scoring layer is designed to work for RSS feeds, Hacker News, and future X/Twitter posts.
 
 When the bot starts, it registers these commands with Telegram so they appear when you type `/` in the bot chat.
+
+## Configuration
+
+Edit tracked sources and interests in:
+
+- `config/sources.json`
+- `config/scoring.json`
+
+`config/sources.json` contains arrays of objects for topics, X/Twitter accounts, keywords, and RSS sources.
+
+`config/scoring.json` contains extra positive and negative scoring rules. These rules are added on top of the built-in defaults.
 
 ## Setup
 

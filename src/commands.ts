@@ -1,3 +1,4 @@
+import { buildSourcesSummary } from "./config.js";
 import { fetchAiNews, type AiNewsItem } from "./collectors/aiNews.js";
 import { fetchHackerNewsTopStories, type HackerNewsStory } from "./collectors/hackerNews.js";
 import { fetchTwitterPosts, type TwitterPost } from "./collectors/twitter.js";
@@ -176,6 +177,7 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
       "/x",
       "/ai",
       "/hn",
+      "/sources",
       "/jobs",
       "/hackathons",
     ].join("\n");
@@ -183,6 +185,10 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
 
   if (normalized === "/today") {
     return buildBriefing(24);
+  }
+
+  if (normalized === "/sources") {
+    return buildSourcesSummary();
   }
 
   if (normalized === "/last") {
@@ -229,5 +235,5 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildCategoryBriefing(categoryCommand);
   }
 
-  return "I understand /start, /today, /last 6h, /x, /ai, /hn, /jobs, and /hackathons for now.";
+  return "I understand /start, /today, /last 6h, /x, /ai, /hn, /sources, /jobs, and /hackathons for now.";
 }

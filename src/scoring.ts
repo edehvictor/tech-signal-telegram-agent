@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 export type SignalInput = {
   title: string;
   text?: string;
@@ -18,7 +20,12 @@ type KeywordRule = {
   reason: string;
 };
 
-const positiveRules: KeywordRule[] = [
+type ScoringConfig = {
+  positiveRules?: KeywordRule[];
+  negativeRules?: KeywordRule[];
+};
+
+const defaultPositiveRules: KeywordRule[] = [
   { keyword: "agent", weight: 5, reason: "AI agent signal" },
   { keyword: "model", weight: 5, reason: "AI model update" },
   { keyword: "llm", weight: 5, reason: "LLM update" },
@@ -40,7 +47,7 @@ const positiveRules: KeywordRule[] = [
   { keyword: "launch", weight: 2, reason: "new launch signal" },
 ];
 
-const negativeRules: KeywordRule[] = [
+const defaultNegativeRules: KeywordRule[] = [
   { keyword: "ad", weight: -3, reason: "marketing-heavy signal" },
   { keyword: "ads", weight: -3, reason: "marketing-heavy signal" },
   { keyword: "campaign", weight: -3, reason: "campaign signal" },
@@ -48,6 +55,35 @@ const negativeRules: KeywordRule[] = [
   { keyword: "opinion", weight: -2, reason: "opinion signal" },
   { keyword: "podcast", weight: -2, reason: "media signal" },
 ];
+
+const configuredRules = loadConfiguredRules();
+const positiveRules = [...defaultPositiveRules, ...configuredRules.positiveRules];
+const negativeRules = [...defaultNegativeRules, ...configuredRules.negativeRules];
+
+function isKeywordRule(value: unknown): value is KeywordRule {
+  if (!value || typeof value !== "object") return false;
+
+  const rule = value as Partial<KeywordRule>;
+
+  return typeof rule.keyword === "string" && typeof rule.weight === "number" && typeof rule.reason === "string";
+}
+
+function loadConfiguredRules(): Required<ScoringConfig> {
+  try {
+    const content = fs.readFileSync("config/scoring.json", "utf8");
+    const parsed = JSON.parse(content) as ScoringConfig;
+
+    return {
+      positiveRules: Array.isArray(parsed.positiveRules) ? parsed.positiveRules.filter(isKeywordRule) : [],
+      negativeRules: Array.isArray(parsed.negativeRules) ? parsed.negativeRules.filter(isKeywordRule) : [],
+    };
+  } catch {
+    return {
+      positiveRules: [],
+      negativeRules: [],
+    };
+  }
+}
 
 function includesKeyword(text: string, keyword: string): boolean {
   const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

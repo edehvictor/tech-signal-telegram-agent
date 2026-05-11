@@ -1,0 +1,234 @@
+{
+  "trackedTopics": [
+    {
+      "name": "AI agents",
+      "category": "ai",
+      "priority": 5,
+      "description": "Agent frameworks, tool use, memory, workflows, and autonomous coding systems."
+    },
+    {
+      "name": "Developer tools",
+      "category": "trending_tool",
+      "priority": 4,
+      "description": "Tools that help engineers build, test, deploy, or automate software faster."
+    },
+    {
+      "name": "Open source AI",
+      "category": "ai",
+      "priority": 5,
+      "description": "New model releases, repos, benchmarks, SDKs, and useful libraries."
+    },
+    {
+      "name": "Hackathons",
+      "category": "hackathon",
+      "priority": 4,
+      "description": "AI, blockchain, developer tooling, and startup hackathon opportunities."
+    },
+    {
+      "name": "Remote AI jobs",
+      "category": "job",
+      "priority": 5,
+      "description": "Junior-friendly, remote, internship, contract, and early-career AI engineering roles."
+    },
+    {
+      "name": "Startup launches",
+      "category": "top_signal",
+      "priority": 3,
+      "description": "Notable AI startup launches, funding, demos, and product releases."
+    },
+    {
+      "name": "AI infrastructure",
+      "category": "ai",
+      "priority": 4,
+      "description": "Inference, GPUs, model serving, observability, evals, data pipelines, and deployment."
+    },
+    {
+      "name": "Technical research",
+      "category": "ai",
+      "priority": 4,
+      "description": "Papers, benchmarks, model capability reports, and practical engineering writeups."
+    }
+  ],
+  "xAccounts": [
+    {
+      "handle": "OpenAI",
+      "name": "OpenAI",
+      "category": "ai",
+      "priority": 5,
+      "whyTrack": "Major model, API, and product releases."
+    },
+    {
+      "handle": "AnthropicAI",
+      "name": "Anthropic",
+      "category": "ai",
+      "priority": 5,
+      "whyTrack": "Claude model and AI safety updates."
+    },
+    {
+      "handle": "GoogleDeepMind",
+      "name": "Google DeepMind",
+      "category": "ai",
+      "priority": 5,
+      "whyTrack": "Frontier model and research updates."
+    },
+    {
+      "handle": "nvidia",
+      "name": "NVIDIA",
+      "category": "ai",
+      "priority": 4,
+      "whyTrack": "GPU, inference, robotics, and AI infrastructure updates."
+    },
+    {
+      "handle": "Microsoft",
+      "name": "Microsoft",
+      "category": "ai",
+      "priority": 4,
+      "whyTrack": "Copilot, Azure AI, and developer platform updates."
+    },
+    {
+      "handle": "sama",
+      "name": "Sam Altman",
+      "category": "top_signal",
+      "priority": 4,
+      "whyTrack": "Signals around OpenAI, startups, and AI direction."
+    },
+    {
+      "handle": "karpathy",
+      "name": "Andrej Karpathy",
+      "category": "top_signal",
+      "priority": 5,
+      "whyTrack": "High-signal engineering and AI education posts."
+    },
+    {
+      "handle": "levelsio",
+      "name": "Pieter Levels",
+      "category": "top_signal",
+      "priority": 3,
+      "whyTrack": "Indie hacking, AI products, and fast shipping signals."
+    },
+    {
+      "handle": "vercel",
+      "name": "Vercel",
+      "category": "trending_tool",
+      "priority": 3,
+      "whyTrack": "Frontend, AI app tooling, and developer platform updates."
+    },
+    {
+      "handle": "github",
+      "name": "GitHub",
+      "category": "trending_tool",
+      "priority": 4,
+      "whyTrack": "Developer tooling, Copilot, repos, and open-source signals."
+    }
+  ],
+  "keywords": [
+    {
+      "term": "AI agent",
+      "category": "ai",
+      "priority": 5
+    },
+    {
+      "term": "open source",
+      "category": "ai",
+      "priority": 5
+    },
+    {
+      "term": "hiring",
+      "category": "job",
+      "priority": 5
+    },
+    {
+      "term": "remote AI engineer",
+      "category": "job",
+      "priority": 5
+    },
+    {
+      "term": "internship",
+      "category": "job",
+      "priority": 4
+    },
+    {
+      "term": "hackathon",
+      "category": "hackathon",
+      "priority": 5
+    },
+    {
+      "term": "deadline",
+      "category": "hackathon",
+      "priority": 3
+    },
+    {
+      "term": "grant",
+      "category": "hackathon",
+      "priority": 3
+    },
+    {
+      "term": "SDK",
+      "category": "trending_tool",
+      "priority": 4
+    },
+    {
+      "term": "API",
+      "category": "trending_tool",
+      "priority": 4
+    },
+    {
+      "term": "benchmark",
+      "category": "ai",
+      "priority": 4
+    },
+    {
+      "term": "inference",
+      "category": "ai",
+      "priority": 4
+    },
+    {
+      "term": "TypeScript",
+      "category": "trending_tool",
+      "priority": 3
+    },
+    {
+      "term": "developer preview",
+      "category": "trending_tool",
+      "priority": 3
+    }
+  ],
+  "rssSources": [
+    {
+      "name": "OpenAI News",
+      "url": "https://openai.com/news/rss.xml",
+      "category": "ai",
+      "enabled": true
+    },
+    {
+      "name": "Google AI Blog",
+      "url": "https://blog.google/technology/ai/rss/",
+      "category": "ai",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft AI Blog",
+      "url": "https://blogs.microsoft.com/ai/feed/",
+      "category": "ai",
+      "enabled": true
+    },
+    {
+      "name": "NVIDIA Deep Learning Blog",
+      "url": "https://blogs.nvidia.com/blog/category/deep-learning/feed/",
+      "category": "ai",
+      "enabled": true
+    },
+    {
+      "name": "MIT Technology Review AI",
+      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
+      "category": "ai",
+      "enabled": true
+    },
+    {
+      "name": "Artificial Intelligence News",
+      "url": "https://www.artificialintelligence-news.com/feed/",
+      "category": "ai",
+      "enabled": true
+    }
+  ]
+}

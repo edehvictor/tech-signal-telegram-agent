@@ -24,6 +24,7 @@ const botCommands = [
   { command: "x", description: "Show ranked X/Twitter tech signals" },
   { command: "ai", description: "Show live AI news from curated sources" },
   { command: "hn", description: "Show live Hacker News stories" },
+  { command: "sources", description: "Show tracked topics, accounts, and feeds" },
   { command: "jobs", description: "Show job openings" },
   { command: "hackathons", description: "Show hackathon opportunities" },
 ] as const;

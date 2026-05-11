@@ -10,6 +10,7 @@ test("/start explains the available commands", async () => {
   assert.match(reply, /\/x/);
   assert.match(reply, /\/ai/);
   assert.match(reply, /\/hn/);
+  assert.match(reply, /\/sources/);
   assert.match(reply, /\/jobs/);
   assert.match(reply, /\/hackathons/);
   assert.doesNotMatch(reply, /\/news/);
@@ -36,6 +37,15 @@ test("/last explains the expected time window format", async () => {
 
   assert.match(reply, /\/last 6h/);
   assert.match(reply, /\/last 24h/);
+});
+
+test("/sources shows tracked interests", async () => {
+  const reply = await parseCommand("/sources");
+
+  assert.match(reply, /Tracked sources and interests/);
+  assert.match(reply, /Topics/);
+  assert.match(reply, /X\/Twitter accounts/);
+  assert.match(reply, /RSS sources/);
 });
 
 test("unknown commands get a helpful fallback", async () => {
