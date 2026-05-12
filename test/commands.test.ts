@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { XBrowserProfileLockedError, XLoginRequiredError } from "../src/collectors/twitterClient.js";
 import { buildBriefing, parseCommand } from "../src/commands.js";
 
 test("/start explains the available commands", async () => {
@@ -8,6 +9,9 @@ test("/start explains the available commands", async () => {
   assert.match(reply, /tech signal bot/i);
   assert.match(reply, /\/today/);
   assert.match(reply, /\/x/);
+  assert.match(reply, /\/x_login/);
+  assert.match(reply, /\/x_status/);
+  assert.match(reply, /\/x_close/);
   assert.match(reply, /\/ai/);
   assert.match(reply, /\/hn/);
   assert.match(reply, /\/sources/);
@@ -166,14 +170,82 @@ test("/x returns ranked X/Twitter signals using injected data", async () => {
   assert.ok(reply.indexOf("Open source AI agent SDK") < reply.indexOf("Celebrity AI ad campaign"));
 });
 
+test("/handle returns posts from a requested X account", async () => {
+  const reply = await parseCommand("/handle openai", {
+    fetchTwitterHandlePosts: async (handle) => [
+      {
+        id: "1",
+        authorName: handle,
+        authorHandle: handle,
+        text: "New AI agent API release for developers",
+        url: `https://x.com/${handle}/status/1`,
+        createdAt: new Date("2026-05-09T08:00:00Z"),
+        likeCount: 10,
+        repostCount: 4,
+        replyCount: 2,
+      },
+    ],
+  });
+
+  assert.match(reply, /Latest X\/Twitter tech signals/);
+  assert.match(reply, /X\/Twitter by @openai/);
+  assert.match(reply, /New AI agent API release/);
+  assert.match(reply, /Link: https:\/\/x.com\/openai\/status\/1/);
+});
+
 test("/x handles collector failures gracefully", async () => {
   const reply = await parseCommand("/x", {
     fetchTwitterPosts: async () => {
-      throw new Error("network failed");
+      throw new Error("Missing X_BEARER_TOKEN. Add it to .env before using OfficialXApiClient.");
     },
   });
 
   assert.match(reply, /could not fetch X\/Twitter posts/i);
+  assert.match(reply, /Missing X_BEARER_TOKEN/);
+});
+
+test("/x explains first-time browser login requirement", async () => {
+  const reply = await parseCommand("/x", {
+    fetchTwitterPosts: async () => {
+      throw new XLoginRequiredError();
+    },
+  });
+
+  assert.match(reply, /X login required/);
+  assert.match(reply, /\/x_login/);
+  assert.match(reply, /send \/x/i);
+});
+
+test("/x explains locked browser profile", async () => {
+  const reply = await parseCommand("/x", {
+    fetchTwitterPosts: async () => {
+      throw new XBrowserProfileLockedError();
+    },
+  });
+
+  assert.match(reply, /X browser profile is locked/);
+  assert.match(reply, /Get-Process msedge/);
+  assert.match(reply, /\/x_login/);
+});
+
+test("/x-status explains whether the reusable X browser session is open", async () => {
+  const reply = await parseCommand("/x_status");
+
+  assert.match(reply, /X browser session is not open|X browser session is open/);
+});
+
+test("/x-close closes the reusable X browser session", async () => {
+  const reply = await parseCommand("/x_close");
+
+  assert.match(reply, /X browser session closed/);
+});
+
+test("old hyphenated X browser commands still work as aliases", async () => {
+  const statusReply = await parseCommand("/x-status");
+  const closeReply = await parseCommand("/x-close");
+
+  assert.match(statusReply, /X browser session is not open|X browser session is open/);
+  assert.match(closeReply, /X browser session closed/);
 });
 
 test("/ai handles collector failures gracefully", async () => {

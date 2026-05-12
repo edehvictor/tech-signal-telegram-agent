@@ -1,3 +1,6 @@
+import { loadSourcesConfig, type Keyword, type TrackedTopic, type XAccount } from "../config.js";
+import { createTwitterClient, type TwitterClient } from "./twitterClient.js";
+
 export type TwitterPost = {
   id: string;
   authorName: string;
@@ -10,42 +13,78 @@ export type TwitterPost = {
   replyCount: number;
 };
 
-const mockTwitterPosts: TwitterPost[] = [
-  {
-    id: "mock-1",
-    authorName: "AI Builder",
-    authorHandle: "aibuilder",
-    text: "New open source AI agent SDK release: tool calling, memory, and workflow examples included.",
-    url: "https://x.com/aibuilder/status/mock-1",
-    createdAt: new Date("2026-05-09T09:00:00Z"),
-    likeCount: 840,
-    repostCount: 210,
-    replyCount: 44,
-  },
-  {
-    id: "mock-2",
-    authorName: "Startup Jobs",
-    authorHandle: "startupjobs",
-    text: "Hiring: remote junior AI engineer to build LLM product features. TypeScript experience is a plus.",
-    url: "https://x.com/startupjobs/status/mock-2",
-    createdAt: new Date("2026-05-09T08:00:00Z"),
-    likeCount: 130,
-    repostCount: 35,
-    replyCount: 10,
-  },
-  {
-    id: "mock-3",
-    authorName: "Tech Marketing",
-    authorHandle: "techmarketing",
-    text: "A celebrity-backed AI ad campaign just launched for small businesses.",
-    url: "https://x.com/techmarketing/status/mock-3",
-    createdAt: new Date("2026-05-09T07:00:00Z"),
-    likeCount: 500,
-    repostCount: 100,
-    replyCount: 60,
-  },
-];
+export async function fetchTwitterPosts(limit = 10, client: TwitterClient = createTwitterClient()): Promise<TwitterPost[]> {
+  const config = loadSourcesConfig();
+  const accounts = config.xAccounts.slice(0, Math.max(limit, 1));
+  const keywords = config.keywords.length > 0 ? config.keywords : [];
 
-export async function fetchTwitterPosts(limit = 10): Promise<TwitterPost[]> {
-  return mockTwitterPosts.slice(0, limit);
+  if (accounts.length === 0) {
+    return [];
+  }
+
+  if (client.getFeedPosts) {
+    const posts = await client.getFeedPosts(keywords, Math.max(limit * 3, limit));
+    return filterTwitterPostsByConfig(posts, config.xAccounts, config.keywords, config.trackedTopics).slice(0, limit);
+  }
+
+  const accountPostGroups = await Promise.all(
+    accounts.map((account) => client.getAccountPosts(account, keywords, 1)),
+  );
+
+  return accountPostGroups.flat().slice(0, limit);
+}
+
+export async function fetchTwitterHandlePosts(
+  handle: string,
+  limit = 5,
+  client: TwitterClient = createTwitterClient(),
+): Promise<TwitterPost[]> {
+  const normalizedHandle = normalizeHandle(handle);
+
+  if (!normalizedHandle) {
+    throw new Error("Use a valid X handle, for example /handle openai.");
+  }
+
+  return client.getAccountPosts(
+    {
+      handle: normalizedHandle,
+      name: normalizedHandle,
+      category: "top_signal",
+      priority: 3,
+      whyTrack: "Requested directly in Telegram.",
+    },
+    [],
+    limit,
+  );
+}
+
+function filterTwitterPostsByConfig(
+  posts: ReadonlyArray<TwitterPost>,
+  accounts: ReadonlyArray<XAccount>,
+  keywords: ReadonlyArray<Keyword>,
+  topics: ReadonlyArray<TrackedTopic>,
+): TwitterPost[] {
+  const accountHandles = new Set(accounts.map((account) => account.handle.toLowerCase()));
+  const terms = [
+    ...keywords.map((keyword) => keyword.term),
+    ...topics.flatMap((topic) => [topic.name, ...topic.description.split(/[,\s]+/)]),
+  ]
+    .map((term) => term.trim().toLowerCase())
+    .filter((term) => term.length >= 3);
+
+  return posts.filter((post) => {
+    if (accountHandles.has(post.authorHandle.toLowerCase())) return true;
+
+    const text = post.text.toLowerCase();
+    return terms.some((term) => includesTerm(text, term));
+  });
+}
+
+function normalizeHandle(handle: string): string {
+  return handle.trim().replace(/^@/, "").replace(/^https:\/\/x\.com\//i, "").split(/[/?#]/)[0] ?? "";
+}
+
+function includesTerm(text: string, term: string): boolean {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|\\W)${escaped}(\\W|$)`, "i").test(text);
 }

@@ -1,7 +1,8 @@
 import { buildSourcesSummary } from "./config.js";
 import { fetchAiNews, type AiNewsItem } from "./collectors/aiNews.js";
 import { fetchHackerNewsTopStories, type HackerNewsStory } from "./collectors/hackerNews.js";
-import { fetchTwitterPosts, type TwitterPost } from "./collectors/twitter.js";
+import { fetchTwitterHandlePosts, fetchTwitterPosts, type TwitterPost } from "./collectors/twitter.js";
+import { BrowserTwitterClient, XBrowserProfileLockedError, XLoginRequiredError } from "./collectors/twitterClient.js";
 import { sampleItems } from "./sampleItems.js";
 import {
   aiNewsToSignals,
@@ -31,6 +32,7 @@ type CommandDependencies = {
   fetchAiNews?: (limit?: number) => Promise<ReadonlyArray<AiNewsItem>>;
   fetchHackerNewsTopStories?: (limit?: number) => Promise<ReadonlyArray<HackerNewsStory>>;
   fetchTwitterPosts?: (limit?: number) => Promise<ReadonlyArray<TwitterPost>>;
+  fetchTwitterHandlePosts?: (handle: string, limit?: number) => Promise<ReadonlyArray<TwitterPost>>;
 };
 
 const categoryLabels: Record<BriefingItem["category"], string> = {
@@ -175,6 +177,10 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
       "/last 6h",
       "/last 24h",
       "/x",
+      "/x_login",
+      "/x_status",
+      "/x_close",
+      "/handle openai",
       "/ai",
       "/hn",
       "/sources",
@@ -200,13 +206,51 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildBriefing(Number(lastMatch[1]));
   }
 
+  if (normalized === "/x_login" || normalized === "/x-login") {
+    try {
+      const client = new BrowserTwitterClient();
+      await client.openLoginPage();
+
+      return [
+        "X browser session opened.",
+        "",
+        "If X asks you to log in, complete login in the opened browser window.",
+        "After your X home feed loads, send /x_status or /x.",
+      ].join("\n");
+    } catch (error) {
+      return formatXError(error);
+    }
+  }
+
+  if (normalized === "/x_status" || normalized === "/x-status") {
+    return BrowserTwitterClient.isSessionOpen()
+      ? "X browser session is open. Send /x to read the feed."
+      : "X browser session is not open. Send /x_login to open it.";
+  }
+
+  if (normalized === "/x_close" || normalized === "/x-close") {
+    await BrowserTwitterClient.closeSession();
+    return "X browser session closed.";
+  }
+
   if (normalized === "/x") {
     try {
       const fetchPosts = dependencies.fetchTwitterPosts ?? fetchTwitterPosts;
       const posts = await fetchPosts(20);
       return buildTwitterBriefing(posts);
     } catch (error) {
-      return "I could not fetch X/Twitter posts right now. Please try again in a bit.";
+      return formatXError(error);
+    }
+  }
+
+  const handleMatch = normalized.match(/^\/(?:handle|x_handle)\s+(@?[a-z0-9_]{1,15}|https:\/\/x\.com\/[a-z0-9_]{1,15})$/i);
+  if (handleMatch) {
+    try {
+      const fetchPosts = dependencies.fetchTwitterHandlePosts ?? fetchTwitterHandlePosts;
+      const posts = await fetchPosts(handleMatch[1], 10);
+      return buildTwitterBriefing(posts);
+    } catch (error) {
+      return formatXError(error);
     }
   }
 
@@ -235,5 +279,36 @@ export async function parseCommand(text: string, dependencies: CommandDependenci
     return buildCategoryBriefing(categoryCommand);
   }
 
-  return "I understand /start, /today, /last 6h, /x, /ai, /hn, /sources, /jobs, and /hackathons for now.";
+  return "I understand /start, /today, /last 6h, /x, /x_login, /x_status, /x_close, /handle openai, /ai, /hn, /sources, /jobs, and /hackathons for now.";
+}
+
+function formatXError(error: unknown): string {
+  if (error instanceof XLoginRequiredError) {
+    return [
+      "X login required.",
+      "",
+      "Send /x_login to open the bot browser session.",
+      "Sign into X in the opened browser window.",
+      "After your X home feed loads, send /x.",
+    ].join("\n");
+  }
+
+  if (error instanceof XBrowserProfileLockedError) {
+    return [
+      "X browser profile is locked.",
+      "",
+      "Close all Edge windows, then stop hidden Edge background processes if they are still running.",
+      "",
+      "In PowerShell you can run:",
+      "Get-Process msedge -ErrorAction SilentlyContinue | Stop-Process",
+      "",
+      "Then send /x_login again.",
+    ].join("\n");
+  }
+
+  if (error instanceof Error) {
+    return `I could not fetch X/Twitter posts right now: ${error.message}`;
+  }
+
+  return "I could not fetch X/Twitter posts right now. Please try again in a bit.";
 }

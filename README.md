@@ -11,6 +11,10 @@ This first version only responds to:
 - `/last 6h`
 - `/last 24h`
 - `/x`
+- `/x_login`
+- `/x_status`
+- `/x_close`
+- `/handle openai`
 - `/ai`
 - `/hn`
 - `/sources`
@@ -19,7 +23,7 @@ This first version only responds to:
 
 The briefing data comes from local sample items for now. Each item can include a source link, and the bot includes that link in the Telegram reply.
 
-`/x` currently uses mock X/Twitter posts to prove the source shape, ranking, and Telegram output. Later we will replace the mock collector with real X/Twitter access.
+`/x` uses the configured X/Twitter client. Runtime defaults to browser mode, which reads your logged-in X home feed from a local Playwright browser profile. Mock X data is only used in tests or explicit development injection.
 
 `/ai` fetches live AI news from curated sources, including AI research, product, infrastructure, and industry feeds. The source list is intentionally editable so the bot is not tied to one company.
 
@@ -41,6 +45,30 @@ Edit tracked sources and interests in:
 `config/sources.json` contains arrays of objects for topics, X/Twitter accounts, keywords, and RSS sources.
 
 `config/scoring.json` contains extra positive and negative scoring rules. These rules are added on top of the built-in defaults.
+
+## X Feed Mode
+
+For free local X/Twitter access, use browser mode:
+
+```env
+TWITTER_CLIENT_MODE=browser
+X_BROWSER_PROFILE_DIR=.browser/x-profile
+X_BROWSER_HEADLESS=false
+X_BROWSER_CHANNEL=msedge
+X_FEED_URL=https://x.com/home
+```
+
+The first time you run `/x`, a browser window may open. Log into X manually in that browser profile. The bot does not store your X password.
+
+Use `/x_login` to open the reusable browser session, `/x_status` to check whether it is open, `/x` to read the feed, and `/x_close` to close the browser session.
+
+To attach to your normal signed-in Edge profile instead, close Edge first, set `X_BROWSER_PROFILE_DIR` to your Edge user data folder, set `X_BROWSER_CDP_URL=http://127.0.0.1:9222`, then run:
+
+```bash
+npm run x:edge
+```
+
+Keep that Edge window open while the bot is running.
 
 ## Setup
 
